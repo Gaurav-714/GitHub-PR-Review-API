@@ -13,15 +13,15 @@ class AnalyzePullRequest(APIView):
         task_result = pr_analysis_task(repo_url, pr_number, github_token)
 
         return Response({
-            "task_id": task_result.id,
+            "analysis_id": task_result.id,
             "status": "Started Analyzing Pull Request"
         })
     
 
 class AnalysisStatus(APIView):
-    def get(self, request, task_id):
-        result = AsyncResult(task_id)
+    def get(self, request, analysis_id):
+        result = AsyncResult(analysis_id)
         return Response({
-            "task_id": task_id,
+            "analysis_id": analysis_id,
             "status": result.state
         })

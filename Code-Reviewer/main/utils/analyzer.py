@@ -24,7 +24,7 @@ def analyze_code_with_llm(file_name, file_content):
 
 
 def pr_analysis(repo_url, pr_number, github_token):
-    task_id = str(uuid.uuid4())
+    analysis_id = str(uuid.uuid4())
     try:
         pr_files = fetch_pr_files(repo_url, pr_number, github_token)
 
@@ -36,8 +36,8 @@ def pr_analysis(repo_url, pr_number, github_token):
             analysis_result = analyze_code_with_llm(file_name, file_content)
             analysis_result.append({"file_name": file_name, "result": analysis_result})
 
-        return {"task_id": task_id, "result": analysis_result}
+        return {"analysis_id": analysis_id, "result": analysis_result}
     
     except Exception as ex:
         print(ex)
-        return {"task_id": task_id, "result": []}
+        return {"analysis_id": analysis_id, "result": []}
