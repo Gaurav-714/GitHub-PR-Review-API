@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x3f75b@qkx_t$9q2!#3=+uvocp0tpyeh=-y&mgh5z=)=t(e5z8'
+SECRET_KEY = 'django-insecure-t3gn4=b1s5=(f6x4v9#9jvq1^#ryxexhl5#-zky3oq^*hc7qwa'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -19,19 +19,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'corsheaders', #
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    'home',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware', #
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -41,13 +37,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-
-NINJA_SETTINGS = {
-    "RESPONSE_CLASS": "ninja.renderers.ORJSONResponse",  # Faster JSON serialization
-}
-
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = 'reviewer.urls'
 
 TEMPLATES = [
     {
@@ -65,7 +55,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+WSGI_APPLICATION = 'reviewer.wsgi.application'
 
 
 # Database
@@ -119,3 +109,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SELERLIZER = 'json'
+CELERY_RESULT_EXPIRES = 60 * 60 * 24
