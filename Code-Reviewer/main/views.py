@@ -14,7 +14,7 @@ class AnalyzePullRequest(APIView):
 
         return Response({
             "task_id": task_result.id,
-            "status": "xyz"
+            "status": "Started Analyzing Pull Request"
         })
     
 

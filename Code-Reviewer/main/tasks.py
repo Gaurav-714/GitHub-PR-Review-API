@@ -1,5 +1,5 @@
 from celery import Celery, shared_task
-from utils.analyzer import pr_analysis
+from .utils.analyzer import pr_analysis
 
 app = Celery("core")
 app.config_from_object('django.conf:settings', namespace='CELERY')
