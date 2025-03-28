@@ -9,7 +9,7 @@ from .prompts import get_prompts
 
 def analyze_code_with_llm(file_name, file_content):
     system_prompt, user_prompt = get_prompts(file_name, file_content)
-    
+
     api_key = "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"
     if not api_key:
         raise ValueError("API key is missing. Set the GROQ_API_KEY environment variable.")
@@ -52,6 +52,10 @@ def pr_analysis(repo_url, pr_number, github_token):
         for file in pr_files:
             file_name = file['filename']
             file_content = fetch_file_content(repo_url, file_name, github_token)
+
+            if "__pycache__" in file_name or file_name.endswith(".pyc"):
+                print(f"Skipping cached file: {file_name}")
+                continue  
             
             file_analysis = analyze_code_with_llm(file_name, file_content)
             if file_analysis is not None:
