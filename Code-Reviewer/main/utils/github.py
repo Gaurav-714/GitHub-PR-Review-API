@@ -25,7 +25,7 @@ def fetch_pr_files(repo_url, pr_number, github_token=None):
 
 def fetch_file_content(repo_url, file_path, github_token=None):
     owner, repo = get_owner_and_repo(repo_url)
-    url = f"https://api.github.com/repos/{owner}/{repo}/content/{file_path}"
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
 
     headers = {"Authorization": f"token {github_token}"} if github_token else {}
     response = requests.get(url, headers=headers)
