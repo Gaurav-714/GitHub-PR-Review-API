@@ -51,14 +51,17 @@ def pr_analysis(repo_url, pr_number, github_token):
 
         for file in pr_files:
             file_name = file['filename']
-            print(f"*** Processing file: {file_name} ***")
-            file_content = fetch_file_content(repo_url, file_name, github_token)
+            file_path_parts = file_name.split("/") 
 
-            if "__pycache__" in file_name or file_name.endswith(".pyc"):
-                print(f"*** Skipping cached file: {file_name} ***")
-                continue  
-            
+            if any(part == "__pycache__" for part in file_path_parts) or file_name.endswith(".pyc"):
+                print(f"⚠️ Skipping cached file: {file_name}")
+                continue 
+
+            print(f"✅ Processing file: {file_name}") 
+
+            file_content = fetch_file_content(repo_url, file_name, github_token)
             file_analysis = analyze_code_with_llm(file_name, file_content)
+
             if file_analysis is not None:
                 analysis_result.append({"file_name": file_name, "result": file_analysis})
 
