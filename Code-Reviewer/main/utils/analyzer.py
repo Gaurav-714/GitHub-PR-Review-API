@@ -15,7 +15,7 @@ def analyze_code_with_llm(file_name, file_content):
         raise ValueError("API key is missing. Set the GROQ_API_KEY environment variable.")
 
     client = Groq(api_key=api_key)
-    for attempt in range(3):  # Retry up to 3 times
+    for attempt in range(3): 
         try:   
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
@@ -25,15 +25,19 @@ def analyze_code_with_llm(file_name, file_content):
                 ],
                 temperature=0.7,
                 top_p=0.9,
-                #response_format={"type": "json_object"},
+                response_format={"type": "json_object"},
             )
-            response_dict = json.loads(completion.model_dump_json())  
-            #print(f"LLM Response for {file_name}: {response_dict}")
-            return response_dict
-            #return completion.choices[0].message.content
-        
+            response_content = completion.choices[0].message.content  
+
+            try:
+                json_response = json.loads(response_content)  
+            except json.JSONDecodeError:
+                json_response = {"response": response_content}  
+
+            return json_response 
+
         except openai.error.RateLimitError:
-                wait_time = (attempt + 1) * 10  # Increase wait time exponentially
+                wait_time = (attempt + 1) * 10  
                 print(f"Rate limit hit. Retrying in {wait_time} seconds...")
                 time.sleep(wait_time)
 
@@ -53,19 +57,20 @@ def pr_analysis(repo_url, pr_number, github_token):
             file_name = file['filename']
             file_path_parts = file_name.split("/") 
 
-            if any(part == "__pycache__" for part in file_path_parts) or file_name.endswith(".pyc"):
-                print(f"⚠️ Skipping cached file: {file_name}")
+            if (
+                any(part == "__pycache__" for part in file_path_parts)
+                or file_name.endswith(".pyc")
+                or file_name.endswith(".sqlite3") 
+            ):
                 continue 
-
-            print(f"✅ Processing file: {file_name}") 
-
+            
             file_content = fetch_file_content(repo_url, file_name, github_token)
             file_analysis = analyze_code_with_llm(file_name, file_content)
 
             if file_analysis is not None:
                 analysis_result.append({"file_name": file_name, "result": file_analysis})
 
-        print(f"Final Analysis Result: {json.dumps(analysis_result, indent=2)}")
+        #print(f"Final Analysis Result: {json.dumps(analysis_result, indent=2)}")
         return {"analysis_id": analysis_id, "status": "SUCCESS", "result": analysis_result}
     
     except Exception as ex:
