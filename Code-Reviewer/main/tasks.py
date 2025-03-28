@@ -5,7 +5,7 @@ app = Celery("core")
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 @shared_task
-def pr_analysis_task(repo_url, pr_number, github_token=None):
+def pr_analysis_task(repo_url: str, pr_number: int, github_token: str = None):
     result = pr_analysis(repo_url, pr_number, github_token)
     return result
     

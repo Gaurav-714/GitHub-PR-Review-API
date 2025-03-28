@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import JsonResponse
 from celery.result import AsyncResult
 from .tasks import pr_analysis_task
 
@@ -13,20 +12,23 @@ class AnalyzePullRequest(APIView):
             repo_url = data.get("repo_url")
             pr_number = data.get("pr_number")
             github_token = data.get("github_token")
-            task_result = pr_analysis_task(repo_url, pr_number, github_token)
 
+            task_result = pr_analysis_task.apply_async(args=[repo_url, pr_number, github_token])
+            #task_result = pr_analysis_task.delay(repo_url, pr_number, github_token)
+            
             return Response({
                 "success": True,
-                "analysis_id": task_result.id,
+                "analysis_id": task_result.id, #task_result["analysis_id"],
                 "status": "Started Analyzing Pull Request"
-            }, status=status.HTTP_102_PROCESSING)
+            }, status=status.HTTP_200_OK)
         
         except Exception as ex:
+            print(ex)
             return Response({
                 "success": False,
-                "message": "something went wrong",
-                "details": str(ex)
-            })
+                "message": "Something went wrong",
+                "error": str(ex)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 class AnalysisStatus(APIView):
@@ -41,13 +43,14 @@ class AnalysisStatus(APIView):
                 response_data['result'] = result.result
             elif result.state == 'FAILURE':
                 response_data['error'] = str(result.result)
-
-            return JsonResponse(response_data)
+                
+            return Response(response_data)
         
         except Exception as ex:
+            print(ex)
             return Response({
                 "success": False,
                 "message": "something went wrong",
-                "details": str(ex)
-            })
+                "error": str(ex)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

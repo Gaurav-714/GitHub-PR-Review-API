@@ -37,7 +37,7 @@ def pr_analysis(repo_url, pr_number, github_token):
             file_name = file['filename']
             file_content = fetch_file_content(repo_url, file_name, github_token)
             
-            analysis_result = analyze_code_with_llm(file_name, file_content)
+            analysis_result = list(analyze_code_with_llm(file_name, file_content))
             analysis_result.append({"file_name": file_name, "result": analysis_result})
 
         return {"analysis_id": analysis_id, "result": analysis_result}
