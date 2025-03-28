@@ -1,5 +1,4 @@
 from groq import Groq
-import os
 import uuid
 import openai
 import time
@@ -10,8 +9,8 @@ from .prompts import get_prompts
 
 def analyze_code_with_llm(file_name, file_content):
     system_prompt, user_prompt = get_prompts(file_name, file_content)
+    
     api_key = "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"
-    #api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
         raise ValueError("API key is missing. Set the GROQ_API_KEY environment variable.")
 
