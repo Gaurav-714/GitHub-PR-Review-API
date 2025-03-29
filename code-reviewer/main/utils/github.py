@@ -14,24 +14,37 @@ def get_owner_and_repo(url):
 
 def fetch_pr_files(repo_url, pr_number, github_token=None):
     owner, repo = get_owner_and_repo(repo_url)
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
 
     headers = {"Authorization": f"token {github_token}"} if github_token else {}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
     response = requests.get(url, headers=headers)
     response.raise_for_status()
 
     return response.json()
 
 
-def fetch_file_content(repo_url, file_path, github_token=None):
+def fetch_file_content(repo_url, pr_branch, file_path, github_token=None):
     owner, repo = get_owner_and_repo(repo_url)
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={pr_branch}"
 
     headers = {"Authorization": f"token {github_token}"} if github_token else {}
     response = requests.get(url, headers=headers)
+    
+    if response.status_code == 404:
+        print(f"File not found: {file_path} in branch {pr_branch}")
+        return None
+    
     response.raise_for_status()
-
     content = response.json()
 
-    return base64.b64decode(content["content"]).decode() 
+    # Handling large files by fetching from "download_url"
+    if "download_url" in content and content["download_url"]:
+        file_response = requests.get(content["download_url"])
+        file_response.raise_for_status()
+        return file_response.text  
     
+    return base64.b64decode(content["content"]).decode() 
