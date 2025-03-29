@@ -47,7 +47,7 @@ def analyze_code_with_llm(file_name, file_content):
     return None 
 
 
-def pr_analysis(repo_url, pr_number, github_token):
+def pr_analysis(repo_url, pr_branch, pr_number, github_token):
     analysis_id = str(uuid.uuid4())
     try:
         pr_files = fetch_pr_files(repo_url, pr_number, github_token)
@@ -64,13 +64,12 @@ def pr_analysis(repo_url, pr_number, github_token):
             ):
                 continue 
             
-            file_content = fetch_file_content(repo_url, file_name, github_token)
+            file_content = fetch_file_content(repo_url, pr_branch, file_name, github_token)
             file_analysis = analyze_code_with_llm(file_name, file_content)
 
             if file_analysis is not None:
-                analysis_result.append({"file_name": file_name, "result": file_analysis})
+                analysis_result.append({"file_name": file_name, "analysis": file_analysis})
 
-        #print(f"Final Analysis Result: {json.dumps(analysis_result, indent=2)}")
         return {"analysis_id": analysis_id, "status": "SUCCESS", "result": analysis_result}
     
     except Exception as ex:

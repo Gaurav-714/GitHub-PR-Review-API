@@ -50,7 +50,6 @@ def get_prompts(file_content, file_name):
         ### **Expected Response Format (JSON)**
         ```json
         {{
-            "file": "{file_name}",
             "issues": [
                 {{
                     "type": "<code_quality|bug|performance|security|best_practice>",

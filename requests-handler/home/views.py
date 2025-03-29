@@ -11,6 +11,7 @@ CODE_REVIEWER_URL = "http://code-reviewer:8001/"
 
 class AnalyzePullRequest(Schema):
     repo_url: str
+    pr_branch: str
     pr_number: int
     github_token: Optional[str] = None
 
@@ -49,6 +50,7 @@ class PullRequestAnalysisAPI:
         """Handles PR analysis request"""
         data = {
             "repo_url": analysis_request.repo_url,
+            "pr_branch": analysis_request.pr_branch,
             "pr_number": analysis_request.pr_number,
             "github_token": analysis_request.github_token,
         }

@@ -11,10 +11,10 @@ class AnalyzePullRequest(APIView):
             data = request.data 
             repo_url = data.get("repo_url")
             pr_number = data.get("pr_number")
+            pr_branch = data.get("pr_branch")
             github_token = data.get("github_token")
 
-            task_result = pr_analysis_task.apply_async(args=[repo_url, pr_number, github_token])
-            #task_result = pr_analysis_task.delay(repo_url, pr_number, github_token)
+            task_result = pr_analysis_task.apply_async(args=[repo_url, pr_number, pr_branch, github_token])
             
             return Response({
                 "success": True,
