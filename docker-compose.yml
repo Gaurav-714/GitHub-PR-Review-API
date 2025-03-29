@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  requests-handler:
+    build: ./requests-handler
+    ports:
+      - "8000:8000"
+    depends_on:
+      - code-reviewer
+    networks:
+      - microservices-network
+
+  code-reviewer:
+    build: ./code-reviewer
+    depends_on:
+      - redis
+    ports:
+      - "8001:8001"
+    networks:
+      - microservices-network
+
+  celery-worker:
+    build: ./code-reviewer
+    command: celery -A core worker --loglevel=info 
+    user: "1000:1000"  # runs Celery as a non-root user (no superuser privileges)
+    depends_on:
+      - code-reviewer
+      - redis
+    networks:
+      - microservices-network
+
+  redis:
+    image: redis:7.0-alpine  
+    ports:
+      - "6380:6379"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
