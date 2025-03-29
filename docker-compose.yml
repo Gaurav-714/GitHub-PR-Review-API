@@ -3,6 +3,8 @@ version: '3.8'
 services:
   requests-handler:
     build: ./requests-handler
+    volumes:
+      - ./requests-handler:/handler-app  
     ports:
       - "8000:8000"
     depends_on:
@@ -12,6 +14,8 @@ services:
 
   code-reviewer:
     build: ./code-reviewer
+    volumes:
+      - ./code-reviewer:/reviewer-app  
     depends_on:
       - redis
     ports:
@@ -21,6 +25,8 @@ services:
 
   celery-worker:
     build: ./code-reviewer
+    volumes:
+      - ./code-reviewer:/reviewer-app 
     command: celery -A core worker --loglevel=info 
     user: "1000:1000"  # runs Celery as a non-root user (no superuser privileges)
     depends_on:
