@@ -1,9 +1,11 @@
 import groq
+import json
 import uuid
 import time
-import json
-from .github import fetch_pr_files, fetch_file_content
+import requests
+
 from .prompts import get_prompts
+from .github import fetch_pr_files, fetch_file_content
 
 
 def analyze_code_with_llm(file_name, file_content):
@@ -14,10 +16,16 @@ def analyze_code_with_llm(file_name, file_content):
         raise ValueError("API key is missing. Set the GROQ_API_KEY environment variable.")
 
     client = groq.Groq(api_key=api_key)
-    for attempt in range(3): 
-        try:   
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+    
+    max_attempts = 3
+    wait_time = 10  
+
+    for attempt in range(max_attempts): 
+        try:  
+            #model="llama-3.3-70b-versatile", 
+            #model="llama-3.2-3b-preview", 
+            completion = client.chat.completions.create( 
+                model="llama-3.1-8b-instant",
                 messages=[
                     {'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': user_prompt}
@@ -26,7 +34,7 @@ def analyze_code_with_llm(file_name, file_content):
                 top_p=0.9,
                 response_format={"type": "json_object"},
             )
-            response_content = completion.choices[0].message.content  
+            response_content = completion.choices[0].message.content.strip()
 
             try:
                 json_response = json.loads(response_content)  
@@ -34,48 +42,47 @@ def analyze_code_with_llm(file_name, file_content):
                 json_response = {"response": response_content}  
 
             return json_response 
-
-        except groq.RateLimitError as ex:
-            wait_time *= 2  
-            print(f"Rate limit hit. Retrying in {wait_time} seconds...")
-            time.sleep(wait_time) 
-
-            print(f"Rate limit hit. Retrying in {wait_time} seconds...")
+        
+        except requests.exceptions.RequestException as ex: 
+            print(f"Network error: {ex}")
+            wait_time *= 2 
             time.sleep(wait_time)
 
         except Exception as ex:
             print(f"Error while calling Groq API: {ex}")
 
     print("Max retries reached. Skipping this request.")        
-    return None 
+    return None  
 
 
-def pr_analysis(repo_url, pr_branch, pr_number, github_token):
+def pr_analysis(repo_url, pr_branch, pr_number, github_token, max_retries=3):
     analysis_id = str(uuid.uuid4())
     try:
-        pr_files = fetch_pr_files(repo_url, pr_number, github_token)
+        pr_files = fetch_pr_files(repo_url, pr_number, github_token, max_retries)
         analysis_result = []
 
         for file in pr_files:
-            file_name = file['filename']
+            file_name = file["filename"]
+            if not file_name:
+                print("Skipping file with missing filename.")
+                continue
+
             file_path_parts = file_name.split("/") 
+            if any(part == "__pycache__" for part in file_path_parts) or file_name.endswith((".pyc", ".sqlite3")):
+                continue
 
-            if (
-                any(part == "__pycache__" for part in file_path_parts)
-                or file_name.endswith(".pyc")
-                or file_name.endswith(".sqlite3") 
-            ):
-                continue 
-            
-            file_content = fetch_file_content(repo_url, pr_branch, file_name, github_token)
+            file_content = fetch_file_content(repo_url, pr_branch, file_name, github_token, max_retries)
+            if not file_content:
+                print(f"Skipping {file_name} due to missing content.")
+                continue
+
             file_analysis = analyze_code_with_llm(file_name, file_content)
-
-            if file_analysis is not None:
+            if file_analysis:
                 analysis_result.append({"file_name": file_name, "analysis": file_analysis})
 
         return {"analysis_id": analysis_id, "status": "SUCCESS", "result": analysis_result}
     
     except Exception as ex:
-        print(ex)
+        print(f"Error in PR analysis: {ex}")
         return {"analysis_id": analysis_id, "status": "FAILED", "result": []}
     
