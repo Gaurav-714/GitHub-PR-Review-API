@@ -1,6 +1,7 @@
 from ninja import NinjaAPI, Schema, Router
 from typing import Optional
 import aiohttp
+import asyncio
 
 api = NinjaAPI()
 router = Router()
@@ -12,14 +13,31 @@ class AnalyzePullRequest(Schema):
 
 
 async def post_request(url, data):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=data) as response:
-            return await response.json(), response.status
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=data) as response:
+                return await response.json(), response.status
+            
+    except aiohttp.ClientConnectorError:
+        return {"error": "Service unavailable", "message": f"Cannot connect to {url}"}, 503
+    except asyncio.TimeoutError:
+        return {"error": "Request timed out", "message": f"Timeout when connecting to {url}"}, 504
+    except Exception as ex:
+        return {"error": "Unexpected error", "message": str(ex)}, 500
+
 
 async def get_request(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return await response.json(), response.status
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                return await response.json(), response.status
+            
+    except aiohttp.ClientConnectorError:
+        return {"error": "Service unavailable", "message": f"Cannot connect to {url}"}, 503
+    except asyncio.TimeoutError:
+        return {"error": "Request timed out", "message": f"Timeout when connecting to {url}"}, 504
+    except Exception as e:
+        return {"error": "Unexpected error", "message": str(e)}, 500
 
 
 class PullRequestAnalysisAPI:
