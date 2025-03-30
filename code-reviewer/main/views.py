@@ -1,8 +1,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.http import HttpResponse
 from celery.result import AsyncResult
 from .tasks import pr_analysis_task
+
+
+def home(request):
+    return HttpResponse("")
 
 
 class AnalyzePullRequest(APIView):
