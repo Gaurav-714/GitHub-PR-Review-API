@@ -15,12 +15,21 @@ def get_owner_and_repo(url):
 
 def fetch_pr_files(repo_url, pr_number, github_token=None, max_retries=3):
     owner, repo = get_owner_and_repo(repo_url)
+    if not owner or not repo:
+        return {"error": "Invalid repository URL format."}
+    
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files"
     headers = {"Authorization": f"token {github_token}"} if github_token else {}
 
     for attempt in range(max_retries):
         try:
             response = requests.get(url, headers=headers, timeout=10)
+
+            if response.status_code == 401:
+                return {"error": "Authentication error: Invalid GitHub token."}
+            if response.status_code == 404:
+                return {"error": "Error: Repository, PR, or file not found. Check if the repo is private and you provided a valid token."}
+            
             response.raise_for_status()
             pr_files = response.json()
 
@@ -40,6 +49,9 @@ def fetch_pr_files(repo_url, pr_number, github_token=None, max_retries=3):
 
 def fetch_file_content(repo_url, pr_branch, file_path, github_token=None, max_retries=3):
     owner, repo = get_owner_and_repo(repo_url)
+    if not owner or not repo:
+        return {"error": "Invalid repository URL format."}
+    
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}?ref={pr_branch}"
 
     headers = {"Authorization": f"token {github_token}"} if github_token else {}
@@ -47,16 +59,23 @@ def fetch_file_content(repo_url, pr_branch, file_path, github_token=None, max_re
     for attempt in range(max_retries):
         try:
             response = requests.get(url, headers=headers, timeout=10)
-            
+
+            if response.status_code == 401:
+                return {"error": "Authentication error: Invalid GitHub token."}
             if response.status_code == 404:
-                print(f"File not found: {file_path} in branch {pr_branch}")
-                return None
+                return {
+                    "error": (
+                        f"File content not found: {file_path} in branch {pr_branch}. "
+                        "Check if the repository is private, you provided a valid token, "
+                        "or if there's an issue with the branch name."
+                    )
+                }
+          
             try:
                 response.raise_for_status()
                 content = response.json() 
             except requests.exceptions.JSONDecodeError:
-                print(f"Failed to decode JSON response for {file_path}")
-                return None
+                {"error": f"Failed to decode JSON response for {file_path}"}
 
             # Handling large files by using the "download_url"
             if "download_url" in content and content["download_url"]:

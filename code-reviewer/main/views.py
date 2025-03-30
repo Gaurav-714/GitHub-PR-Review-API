@@ -29,7 +29,7 @@ class AnalyzePullRequest(APIView):
                 "message": "Something went wrong",
                 "error": str(ex)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
 
 class AnalysisStatus(APIView):
     def get(self, request, analysis_id):
@@ -39,18 +39,21 @@ class AnalysisStatus(APIView):
                 "analysis_id": analysis_id,
                 "status": result.state,
             }
-            if result.state == "SUCCESS":
-                response_data["result"] = result.result if result.result else "No result available."
-            elif result.state == "FAILED":
-                response_data["error"] = str(result.result) if result.result else "Unknown error occurred."
-                
+            if result.ready(): 
+                task_result = result.result
+                if isinstance(task_result, dict) and task_result.get("status") == "FAILED":
+                    response_data["status"] = "FAILED"
+                    response_data["error"] = task_result.get("error", "Unknown error.")
+                    response_data["details"] = task_result.get("details", [])
+                else:
+                    response_data["result"] = task_result if task_result else "No result available."
+
             return Response(response_data)
         
         except Exception as ex:
             print(f"Error while fetching analysis result: {ex}")
             return Response({
                 "success": False,
-                "message": "something went wrong",
+                "message": "Something went wrong",
                 "error": str(ex)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    

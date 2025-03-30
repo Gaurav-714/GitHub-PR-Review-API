@@ -1,9 +1,9 @@
+import os
 import groq
 import json
 import uuid
 import time
 import requests
-
 from .prompts import get_prompts
 from .github import fetch_pr_files, fetch_file_content
 
@@ -11,7 +11,7 @@ from .github import fetch_pr_files, fetch_file_content
 def analyze_code_with_llm(file_name, file_content):
     system_prompt, user_prompt = get_prompts(file_name, file_content)
 
-    api_key = "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"
+    api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("API key is missing. Set the GROQ_API_KEY environment variable.")
 
@@ -57,14 +57,19 @@ def analyze_code_with_llm(file_name, file_content):
 
 def pr_analysis(repo_url, pr_branch, pr_number, github_token, max_retries=3):
     analysis_id = str(uuid.uuid4())
+    analysis_result = []
+    errors = []
+    
     try:
         pr_files = fetch_pr_files(repo_url, pr_number, github_token, max_retries)
-        analysis_result = []
+        if isinstance(pr_files, dict) and "error" in pr_files:
+            return {"analysis_id": analysis_id, "status": "FAILED", "error": pr_files["error"]}
+        if not isinstance(pr_files, list):
+            return {"analysis_id": analysis_id, "status": "FAILED", "error": "Unexpected API response format."}
 
         for file in pr_files:
-            file_name = file["filename"]
+            file_name = file.get("filename") # file["filename"]
             if not file_name:
-                print("Skipping file with missing filename.")
                 continue
 
             file_path_parts = file_name.split("/") 
@@ -72,17 +77,33 @@ def pr_analysis(repo_url, pr_branch, pr_number, github_token, max_retries=3):
                 continue
 
             file_content = fetch_file_content(repo_url, pr_branch, file_name, github_token, max_retries)
-            if not file_content:
-                print(f"Skipping {file_name} due to missing content.")
+            if isinstance(file_content, dict) and "error" in file_content:
+                errors.append(f"Skipping {file_name}: {file_content['error']}")
+                continue
+            if not isinstance(file_content, str):
+                errors.append(f"Skipping {file_name}: Unexpected response format.")
                 continue
 
             file_analysis = analyze_code_with_llm(file_name, file_content)
             if file_analysis:
                 analysis_result.append({"file_name": file_name, "analysis": file_analysis})
+            
+        if not analysis_result:
+            return {
+                "analysis_id": analysis_id,
+                "status": "FAILED",
+                "error": "All files failed to process.",
+                "details": errors
+            }
 
         return {"analysis_id": analysis_id, "status": "SUCCESS", "result": analysis_result}
     
     except Exception as ex:
         print(f"Error in PR analysis: {ex}")
-        return {"analysis_id": analysis_id, "status": "FAILED", "result": []}
+        return {
+            "analysis_id": analysis_id,
+            "status": "FAILED",
+            "result": [],
+            "details": errors
+        }
     
