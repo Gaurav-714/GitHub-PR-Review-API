@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   requests-handler:
     build: ./requests-handler
@@ -22,16 +20,20 @@ services:
       - "8001:8001"
     networks:
       - microservices-network
+    env_file:
+      - ./code-reviewer/core/.env
 
   celery-worker:
     build: ./code-reviewer
     volumes:
       - ./code-reviewer:/reviewer-app 
-    command: celery -A core worker --loglevel=info 
-    user: "1000:1000"  # runs Celery as a non-root user (no superuser privileges)
+    command: celery -A core worker --loglevel=info
+    user: "1000:1000"
     depends_on:
       - code-reviewer
       - redis
+    env_file:
+      - ./code-reviewer/core/.env
     networks:
       - microservices-network
 
