@@ -6,7 +6,8 @@ import asyncio
 api = NinjaAPI()
 router = Router()
 
-CODE_REVIEWER_URL = "http://code-reviewer:8001/"
+#CODE_REVIEWER_URL = "http://code-reviewer:8001/"
+CODE_REVIEWER_URL = "https://github-pr-code-reviewer.onrender.com"
 
 
 class AnalyzePullRequest(Schema):
