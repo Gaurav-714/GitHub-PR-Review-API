@@ -41,6 +41,8 @@ services:
     image: redis:7.0-alpine  
     ports:
       - "6380:6379"
+    env_file:
+      - ./code-reviewer/core/.env
     networks:
       - microservices-network
 
