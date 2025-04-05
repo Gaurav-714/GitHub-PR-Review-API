@@ -4,7 +4,7 @@ An AI-powered microservices-based system to automate code review for GitHub Pull
 
 ---
 
-## API Documentation: https://documenter.getpostman.com/view/32119544/2sB2cUB3Vs
+## 📑 API Documentation: https://documenter.getpostman.com/view/32119544/2sB2cUB3Vs
 
 ---
 
@@ -13,7 +13,7 @@ An AI-powered microservices-based system to automate code review for GitHub Pull
 - **Backend Frameworks**: Django, Django REST Framework, Django Ninja
 - **Background Processing**: Celery with Redis
 - **LLM Integration**: Groq API for code analysis
-- **Authentication**: GitHub OAuth token (PAT)
+- **Authentication**: GitHub Token (PAT)
 - **Containerization**: Docker, Docker Compose
 - **Architecture**: Microservices (Request Handler + Code Reviewer)
 
@@ -123,7 +123,7 @@ Check the [API Docs](https://documenter.getpostman.com/view/32119544/2sB2cUB3Vs)
 
 ---
 
-## 🙌 Contributing
+## 🙌 Contributions
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
