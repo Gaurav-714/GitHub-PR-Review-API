@@ -19,7 +19,6 @@ An AI-powered microservices-based system to automate code review for GitHub Pull
 
 ---
 
-```markdown
 ## 🏗️ System Architecture
 
 ```
