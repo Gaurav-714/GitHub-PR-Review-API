@@ -1,4 +1,3 @@
-```markdown
 # 🚀 GitHub PR Review System (Microservices-Based)
 
 An AI-powered microservices-based system to automate code review for GitHub Pull Requests. It integrates with GitHub’s API to fetch PR files, processes the analysis in the background using Celery, and utilizes LLM (via Groq) to identify potential issues and suggest improvements.
@@ -20,6 +19,7 @@ An AI-powered microservices-based system to automate code review for GitHub Pull
 
 ---
 
+```markdown
 ## 🏗️ System Architecture
 
 ```
@@ -96,11 +96,12 @@ Users must provide a **GitHub Personal Access Token (PAT)** with appropriate per
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/github-pr-review-system.git
-cd github-pr-review-system
+git clone https://github.com/your-username/github-pr-review-api.git
+cd github-pr-review-api
 
 # Build and start the containers
-docker-compose up --build
+docker-compose up --build (docker compose up --build)
+
 ```
 
 ### 🌐 Access the services
@@ -126,20 +127,5 @@ Check the [API Docs](https://documenter.getpostman.com/view/32119544/2sB2cUB3Vs)
 ## 🙌 Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## 💬 Contact
-
-Built with ❤️ by [Gaurav Nagose](https://github.com/Gaurav-714)  
-For any inquiries, feel free to reach out or open an issue.
-
-```
 
 ---
