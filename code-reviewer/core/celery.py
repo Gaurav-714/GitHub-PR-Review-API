@@ -5,8 +5,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 
 app = Celery('core')
 
-broker_url = os.getenv("CELERY_BROKER_URL")
-result_backend = os.getenv("CELERY_RESULT_BACKEND")
+broker_url = 'redis://redis:6379/0' # os.getenv("CELERY_BROKER_URL")
+result_backend = 'redis://redis:6379/0' # os.getenv("CELERY_RESULT_BACKEND")
 
 if not broker_url or not result_backend:
     raise ValueError("CELERY_BROKER_URL or CELERY_RESULT_BACKEND is not set properly!")
